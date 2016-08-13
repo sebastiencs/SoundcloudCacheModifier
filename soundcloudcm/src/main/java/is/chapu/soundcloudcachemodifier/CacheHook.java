@@ -16,20 +16,20 @@ public class CacheHook implements IXposedHookLoadPackage {
 
     private int cacheSize = 500 * 1024 * 1024;
     private static XSharedPreferences pref = null;
-    private static boolean prefLoaded = false;
+    private boolean firstLoad = false;
 
     public void loadCacheSize() {
         if (this.pref == null) {
             this.pref = new XSharedPreferences("is.chapu.soundcloudcachemodifier", "pref_sd");
         }
 
-        if (!this.prefLoaded && pref.getFile().exists()) {
+        if (!this.firstLoad && this.pref.getFile().exists()) {
             this.pref.makeWorldReadable();
             this.pref.reload();
-            this.prefLoaded = true;
+            this.firstLoad = true;
         }
 
-        if (this.prefLoaded && this.pref.hasFileChanged()) {
+        if (this.pref.hasFileChanged()) {
             pref.reload();
         }
 
@@ -60,9 +60,9 @@ public class CacheHook implements IXposedHookLoadPackage {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
                 long current = (long) param.getResult();
-                XposedBridge.log("Current Cache: " + current);
+                XposedBridge.log("Default size cache: " + current);
                 loadCacheSize();
-                XposedBridge.log("New Cache: " + cacheSize);
+                XposedBridge.log("New size cache: " + cacheSize);
                 param.setResult(cacheSize);
             }
         });
